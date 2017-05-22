@@ -3,10 +3,10 @@
 (defclass form ()
   ((name :initarg :name
          :reader form-name
-         :documentation "The form name")
+         :documentation "The name of the form.")
    (fields :initarg :fields
            :reader form-fields
-           :documentation "The list of FIELDS that the form presents.")
+           :documentation "The FIELDS the forms contains.")
    (validators :initarg :validator
                :initform (constantly t)
                :reader validator
@@ -17,17 +17,21 @@
                    :reader submit-caption
                    :documentation "The caption to be displayed in the submit button.")
    (method :initarg :method
-           :initform "post"
+           :initform :post
            :reader form-method
-           :documentation "")
+           :type :keyowrd
+           :documentation "The HTTP verb to use on submission.")
    (action :initarg :action
            :initform ""
            :reader form-action
-           :documentation "The ACTION attribute of the form element.")
+           :documentation "The URL to use when submitting the form.")
    (enctype :initarg :enctype
             :initform "application/x-www-form-urlencoded"
             :reader form-enctype
-            :documentation "The encoding type of the form.")
+            :type (member "application/x-www-form-urlencoded"
+                          "multipart/form-data"
+                          "text/plain")
+            :documentation "The structure to into which the form data will be converted to prior to submitting the form.")
    ;; Maybe move this to hunchentoot/wookie/etc integration?
    (on-success :initarg :on-success
                :reader on-success
@@ -61,10 +65,9 @@
 (defmethod print-object ((obj field) stream)
   (let ((name (if (slot-boundp obj 'name)
                   (field-name obj)
-                  ;; XXX: Is unnamed a better name?
-                  "anonymous")))
+                  "Anonymous")))
     (print-unreadable-object (obj stream :type t)
-      (format stream "~A" name))))
+      (format stream "~A name" name))))
 
 (defclass input-field (field)
   ((type :initarg :type
@@ -75,14 +78,19 @@
 
 (defclass text-field (input-field)
   ())
+
 (defclass email-field (input-field)
   ((type :initform "email")))
+
 (defclass password-field (input-field)
   ((type :initform "password")))
+
 (defclass hidden-field (input-field)
   ())
+
 (defclass file-field (input-field)
   ())
+
 (defclass checkbox-field (input-field)
   ())
 
@@ -190,7 +198,7 @@ values."
 (defun expand-field-name (symbol)
   (list symbol nil (intern (build-symbol-name symbol '-provided-p))))
 
-(defmacro define-form (name (&body fields) &rest options)
+(defmacro define-form (name (&rest fields) &rest options)
   ;; Maybe the form constructor should be named new-<name>-form
   (let* ((constructor-name (intern (build-symbol-name 'make- name '-form)))
          (field-names (mapcar 'car fields))

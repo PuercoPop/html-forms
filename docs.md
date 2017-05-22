@@ -5,6 +5,7 @@ data.
 
 # Design
 
+TODO: Explain what are forms and fields
 *html-forms* works with mainly two objects forms and fields. It is important to
 remember that errors are returned in a list, so that if more than multiple
 errors can be shown to the user, not only the first one encountered.
@@ -43,6 +44,11 @@ provides integration with:
 - Spinneret
 - Clavier
 
+## Hunchentoot
+
+Handles setting up the validation endpoint for the form-field automatically
+This feature is still being designed.
+
 # Example use case: Login form
 
 ```lisp
@@ -57,3 +63,14 @@ provides integration with:
 
 - text-field
 - textarea
+- password-field
+- email-field
+
+## Defining a custom field
+
+## Extending fields
+## Customizing field behaviour
+
+Take hints from:
+- https://docs.djangoproject.com/en/1.10/topics/forms/
+- https://docs.djangoproject.com/en/1.10/ref/forms/
