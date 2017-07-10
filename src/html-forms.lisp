@@ -57,10 +57,7 @@
    (validp :initform :unknown
            :reader validp
            :type (member :unknown :invalid :valid)
-           :documentation "Does the VALUE slot pass the validator?")
-   ;; Instead use a validp?
-   (safe-value :reader safe-value
-               :documentation "The value of the field")))
+           :documentation "Is the value stored in the VALUE slot valid?")))
 
 (defmethod print-object ((obj field) stream)
   (let ((name (if (slot-boundp obj 'name)
@@ -103,11 +100,10 @@
    (caption :initarg :caption :initform "" :reader button-caption))
   (:documentation "An HTML Button Element"))
 
-;; field-set for multi-value fields
+;; TODO: field-set for multi-value fields
 
 
 ;; Display protocol
-;; XXX: Maybe rename it to RENDER or DISPLAY?
 (defgeneric show (form-or-field stream)
   (:documentation "Print the FORM-OR-FIELD object to the STREAM in a HTML
   representation. This function is similar to print-object except it is not
@@ -138,9 +134,9 @@ values."
   (let ((error-messages ())
         (data ()))
     (loop :for field :in (form-fields form)
-          :for (field-valid? reason) := (multiple-value-list (validate field))
+          :for (field-valid-p reason) := (multiple-value-list (validate field))
           :do
-             (if field-valid?
+             (if field-valid-p
                  (push (cons (field-name field) (field-value field))
                        data)
                  (push reason error-messages)))
@@ -183,15 +179,12 @@ values."
 ;; Lets try returning code as well
 ;; Don't include keywords when not provided
 (defun parse-field-definition (field-name field-type-abbrev &key validator label)
-  ;; XXX: Maybe use &rest args instead of key args and apply them?
   ;; TODO: Fix this, see DEFCLASS and CANONIZE-DEFCLASS-SLOTS for ideas
   `(make-instance ',(field-type-abbrev-expander field-type-abbrev) :name ',field-name
                                                                    ,@(when validator
                                                                        (list :validator validator))
                                                                    ,@(when label
                                                                        (list :label label))))
-
-;; XXX: use guicho's lisp-namespace for form-constructors?
 
 ;; The constructor takes a keyword argument for each field to bind the value of
 ;; the field to it.
